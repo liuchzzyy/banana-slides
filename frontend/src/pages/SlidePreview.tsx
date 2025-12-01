@@ -8,6 +8,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { Button, Loading, Modal, Textarea } from '@/components/shared';
 import { SlideCard } from '@/components/preview/SlideCard';
@@ -36,6 +38,8 @@ export const SlidePreview: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editPrompt, setEditPrompt] = useState('');
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [isOutlineExpanded, setIsOutlineExpanded] = useState(false);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   // 加载项目数据
   useEffect(() => {
@@ -62,11 +66,14 @@ export const SlidePreview: React.FC = () => {
   const handleRegeneratePage = async () => {
     if (!currentProject) return;
     const page = currentProject.pages[selectedIndex];
+    if (!page.id) return;
     await generatePageImage(page.id);
   };
 
   const handleEditPage = () => {
     setEditPrompt('');
+    setIsOutlineExpanded(false);
+    setIsDescriptionExpanded(false);
     setIsEditModalOpen(true);
   };
 
@@ -74,6 +81,7 @@ export const SlidePreview: React.FC = () => {
     if (!currentProject || !editPrompt.trim()) return;
     
     const page = currentProject.pages[selectedIndex];
+    if (!page.id) return;
     await editPageImage(page.id, editPrompt);
     setIsEditModalOpen(false);
   };
@@ -157,7 +165,7 @@ export const SlidePreview: React.FC = () => {
             variant="ghost"
             size="sm"
             icon={<RefreshCw size={18} />}
-            onClick={syncProject}
+            onClick={() => projectId && syncProject(projectId)}
           >
             刷新
           </Button>
@@ -218,7 +226,7 @@ export const SlidePreview: React.FC = () => {
                   setSelectedIndex(index);
                   handleEditPage();
                 }}
-                onDelete={() => deletePageById(page.id)}
+                onDelete={() => page.id && deletePageById(page.id)}
               />
             ))}
           </div>
@@ -345,6 +353,7 @@ export const SlidePreview: React.FC = () => {
         size="lg"
       >
         <div className="space-y-4">
+          {/* 图片 */}
           <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
             {imageUrl && (
               <img
@@ -354,6 +363,65 @@ export const SlidePreview: React.FC = () => {
               />
             )}
           </div>
+
+          {/* 大纲内容 - 可折叠 */}
+          {selectedPage?.outline_content && (
+            <div className="bg-gray-50 rounded-lg border border-gray-200">
+              <button
+                onClick={() => setIsOutlineExpanded(!isOutlineExpanded)}
+                className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors"
+              >
+                <h4 className="text-sm font-semibold text-gray-700">页面大纲</h4>
+                {isOutlineExpanded ? (
+                  <ChevronUp size={18} className="text-gray-500" />
+                ) : (
+                  <ChevronDown size={18} className="text-gray-500" />
+                )}
+              </button>
+              {isOutlineExpanded && (
+                <div className="px-4 pb-4 space-y-2">
+                  <div className="text-sm font-medium text-gray-900">
+                    {selectedPage.outline_content.title}
+                  </div>
+                  {selectedPage.outline_content.points && selectedPage.outline_content.points.length > 0 && (
+                    <ul className="list-disc list-inside space-y-1 text-sm text-gray-600">
+                      {selectedPage.outline_content.points.map((point, idx) => (
+                        <li key={idx}>{point}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 描述内容 - 可折叠 */}
+          {selectedPage?.description_content && (
+            <div className="bg-blue-50 rounded-lg border border-blue-200">
+              <button
+                onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                className="w-full px-4 py-3 flex items-center justify-between hover:bg-blue-100 transition-colors"
+              >
+                <h4 className="text-sm font-semibold text-gray-700">页面描述</h4>
+                {isDescriptionExpanded ? (
+                  <ChevronUp size={18} className="text-gray-500" />
+                ) : (
+                  <ChevronDown size={18} className="text-gray-500" />
+                )}
+              </button>
+              {isDescriptionExpanded && (
+                <div className="px-4 pb-4">
+                  <div className="text-sm text-gray-700 whitespace-pre-wrap max-h-48 overflow-y-auto">
+                    {(selectedPage.description_content as any)?.text || 
+                     (selectedPage.description_content as any)?.text_content?.join('\n') || 
+                     '暂无描述'}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 编辑框 */}
           <Textarea
             label="输入修改指令"
             placeholder="例如：把背景改成蓝色、增大标题字号、更改文本框样式为虚线..."
