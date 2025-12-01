@@ -45,7 +45,15 @@ interface ProjectState {
 // 防抖的API更新函数
 const debouncedUpdatePage = debounce(
   async (projectId: string, pageId: string, data: any) => {
-    await api.updatePage(projectId, pageId, data);
+    // 如果更新的是 description_content，使用专门的端点
+    if (data.description_content) {
+      await api.updatePageDescription(projectId, pageId, data.description_content);
+    } else if (data.outline_content) {
+      // 如果更新的是 outline_content，使用专门的端点
+      await api.updatePageOutline(projectId, pageId, data.outline_content);
+    } else {
+      await api.updatePage(projectId, pageId, data);
+    }
   },
   1000
 );

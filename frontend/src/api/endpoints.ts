@@ -196,6 +196,36 @@ export const updatePage = async (
 };
 
 /**
+ * 更新页面描述
+ */
+export const updatePageDescription = async (
+  projectId: string,
+  pageId: string,
+  descriptionContent: any
+): Promise<ApiResponse<Page>> => {
+  const response = await apiClient.put<ApiResponse<Page>>(
+    `/api/projects/${projectId}/pages/${pageId}/description`,
+    { description_content: descriptionContent }
+  );
+  return response.data;
+};
+
+/**
+ * 更新页面大纲
+ */
+export const updatePageOutline = async (
+  projectId: string,
+  pageId: string,
+  outlineContent: any
+): Promise<ApiResponse<Page>> => {
+  const response = await apiClient.put<ApiResponse<Page>>(
+    `/api/projects/${projectId}/pages/${pageId}/outline`,
+    { outline_content: outlineContent }
+  );
+  return response.data;
+};
+
+/**
  * 删除页面
  */
 export const deletePage = async (projectId: string, pageId: string): Promise<ApiResponse> => {
