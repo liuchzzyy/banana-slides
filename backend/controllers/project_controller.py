@@ -3,6 +3,7 @@ Project Controller - handles project-related endpoints
 """
 import logging
 from flask import Blueprint, request, jsonify, current_app
+from werkzeug.exceptions import BadRequest
 from models import db, Project, Page, Task, ReferenceFile
 from utils import success_response, error_response, not_found, bad_request
 from services import AIService, ProjectContext
@@ -175,6 +176,12 @@ def create_project():
             'status': project.status,
             'pages': []
         }, status_code=201)
+    
+    except BadRequest as e:
+        # Handle JSON parsing errors (invalid JSON body)
+        db.session.rollback()
+        logger.warning(f"create_project: Invalid JSON body - {str(e)}")
+        return bad_request("Invalid JSON in request body")
     
     except Exception as e:
         db.session.rollback()
