@@ -548,12 +548,22 @@ banana-slides/
 │   ├── core/                   # 核心逻辑
 │   ├── migrations/             # 数据库迁移
 │   └── utils/                  # 工具函数
-├── assets/                     # 资源文件
 ├── pyproject.toml              # 项目配置
 ├── uv.lock                     # 依赖锁定
 ├── .env.example                # 环境变量模板
 └── README.md                   # 本文件
 ```
+
+## 🏗️ 架构设计
+
+Banana Slides 使用多智能体系统处理复杂的 PPT 生成任务：
+
+- **Plan Agent**: 分析用户请求，创建可执行的任务列表
+- **Explore Agent**: 导航代码库，查找相关模式和实现
+- **Librarian Agent**: 搜索外部文档，获取最佳实践
+- **Oracle Agent**: 负责架构决策和代码质量审查
+
+此工作流支持并行处理，为 PPT 生成的不同方面提供专业支持。
 
 ## 🤝 贡献指南
 

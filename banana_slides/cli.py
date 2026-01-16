@@ -30,7 +30,7 @@ sys.path.insert(0, str(backend_dir))
 from .config import Config, get_config
 from .models import db, Project, Page, Task
 from .core.generator import AIService, ProjectContext
-from .core.storage import FileService
+from .core.file_service import FileService
 from .core.exporter import ExportService
 from .services.ai_service_manager import get_ai_service
 from .services.image_editability import (
@@ -99,68 +99,6 @@ def get_cli_app():
     if _cli_app is None:
         _cli_app = CLIDatabase.init_db()
     return _cli_app
-
-
-def collect_image_paths(paths):
-    """Collect all image paths from provided arguments"""
-    image_extensions = {".png", ".jpg", ".jpeg", ".webp", ".bmp"}
-    result = []
-
-    for path_str in paths:
-        path = Path(path_str)
-
-        if path.is_file():
-            if path.suffix.lower() in image_extensions:
-                result.append(str(path.resolve()))
-            else:
-                logger.warning(f"Skipping non-image file: {path}")
-        elif path.is_dir():
-            for file in sorted(path.iterdir()):
-                if file.suffix.lower() in image_extensions:
-                    result.append(str(file.resolve()))
-        else:
-            logger.warning(f"Path does not exist: {path}")
-
-    return result
-
-
-def create_service_config(extractor_method="hybrid", inpaint_method="hybrid"):
-    """Create service configuration"""
-    # Configure based on method
-    use_hybrid_extractor = extractor_method == "hybrid"
-    use_hybrid_inpaint = inpaint_method == "hybrid"
-
-    logger.info(f"Config: Extractor={extractor_method}, Inpaint={inpaint_method}")
-
-    config = ServiceConfig.from_defaults(
-        use_hybrid_extractor=use_hybrid_extractor,
-        use_hybrid_inpaint=use_hybrid_inpaint,
-        max_depth=1,
-    )
-
-    # Configure non-hybrid inpaint methods
-    if inpaint_method != "hybrid":
-        inpaint_registry = InpaintProviderRegistry()
-
-        if inpaint_method == "generative":
-            provider = InpaintProviderFactory.create_generative_edit_provider()
-            inpaint_registry.register_default(provider)
-            logger.info("Using generative inpainting (calls text-to-image API)")
-        elif inpaint_method == "baidu":
-            provider = InpaintProviderFactory.create_baidu_inpaint_provider()
-            if provider:
-                inpaint_registry.register_default(provider)
-                logger.info("Using Baidu inpainting")
-            else:
-                logger.warning(
-                    "Baidu inpainting unavailable, falling back to generative"
-                )
-                provider = InpaintProviderFactory.create_generative_edit_provider()
-                inpaint_registry.register_default(provider)
-
-        config.inpaint_registry = inpaint_registry
-
-    return config
 
 
 def collect_image_paths(paths):

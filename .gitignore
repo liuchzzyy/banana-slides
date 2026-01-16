@@ -57,9 +57,13 @@ coverage.xml
 *.pdf
 
 # Documentation
-# Allow all documentation including README.md and AGENTS.md
 !*.md
 
 # Temporary files
 *.orig
 _local_backup/
+
+# Windows
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
